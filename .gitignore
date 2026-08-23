@@ -1,0 +1,40 @@
+# ---- datasets & experiment outputs (never commit) ----
+datasets/
+data/experiments/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+storage/
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# ---- node / frontend ----
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ---- logs, OS, IDE ----
+*.log
+logs/
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# ---- secrets ----
+.env
+.env.*
+*.key
+*.pem
+secrets.*

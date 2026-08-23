@@ -1,0 +1,98 @@
+{
+  "name": "project_engineering_baseline_v1",
+  "identity": {
+    "protocol_name": "Protocol B - Engineering Baseline",
+    "terminology": "Project Engineering Baseline",
+    "is_official_reproduction": false,
+    "reproduction_target": null,
+    "note": "This is the Project Engineering Baseline ratified by project decision. It is NOT a reproduction of the GazeHub ResNet-50 MPIIFaceGaze baseline: the authoritative public sources do not publish that training recipe."
+  },
+  "allowed_status_labels": [
+    "VERIFIED / SOURCE-BACKED",
+    "PROJECT-CHOSEN / NOT AUTHORITATIVE"
+  ],
+  "settings": {
+    "loss": {
+      "value": "MSELoss(raw_prediction, unit_gaze_label)",
+      "target_handling": "gaze label used exactly as produced by preprocessing (unit vector); cast to float32 at the loss boundary only; predictions stay raw/unnormalized",
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE",
+      "source": "training/trainer.py documented inference from appearance-based regression convention; no authoritative source specifies it"
+    },
+    "optimizer": {
+      "type": "Adam",
+      "lr": 0.001,
+      "weight_decay": 0.0,
+      "betas": [0.9, 0.999],
+      "eps": 1e-08,
+      "amsgrad": false,
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE",
+      "source": "TrainingConfig defaults in training/trainer.py; betas/eps/amsgrad recorded here explicitly because they are torch.optim.Adam library defaults (listed to prevent hidden settings)"
+    },
+    "scheduler": {
+      "type": "none",
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE",
+      "source": "no repository specification requires one; deliberately absent"
+    },
+    "epochs": {
+      "value": 1,
+      "scope": "TrainingConfig default; real runs may raise it via configuration without changing this frozen default",
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"
+    },
+    "batch_size": {
+      "value": 8,
+      "applies_to": "make_gaze_dataloader(batch_size=...)",
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"
+    },
+    "seed": {
+      "mechanism": "ExperimentConfig.seed / TrainingConfig.seed honored via apply_seed(python+numpy+torch) at trainer construction; fully reproducible init requires seeding before model construction",
+      "default": null,
+      "status": "VERIFIED / SOURCE-BACKED",
+      "source": "seed mechanism required by existing experiment schema; default intentionally unset"
+    },
+    "pretrained_initialization": {
+      "registry_request": true,
+      "implementation": "torchvision ResNet50_Weights.IMAGENET1K_V2 when enabled",
+      "status": "SPLIT",
+      "verified_part": "the request pretrained_backbone=true is VERIFIED / SOURCE-BACKED (models/registry.py params)",
+      "project_chosen_part": "the concrete torchvision weight version is PROJECT-CHOSEN / NOT AUTHORITATIVE"
+    },
+    "checkpoint": {
+      "policy": "minimal manual save/load via BaselineTrainer.save_checkpoint / load_checkpoint (model+optimizer state, epoch, history)",
+      "best_selection": "none implemented",
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"
+    },
+    "augmentation": {
+      "value": "none",
+      "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"
+    },
+    "shuffling": {
+      "dataset_level": false,
+      "loader_behavior": "DataLoader shuffle=False unless a caller explicitly overrides for training",
+      "status": "VERIFIED / SOURCE-BACKED",
+      "source": "existing DataLoader behavior preserved unchanged; dataset itself never reorders samples"
+    }
+  },
+  "verified_context": {
+    "evaluation_protocol": {
+      "value": "leave-one-person-out: 15 deterministic folds over subjects p00-p14, each subject held out exactly once; within-fold train/test sample-ID disjointness enforced",
+      "status": "VERIFIED / SOURCE-BACKED",
+      "source": "data/splits.py + GazeHub MPIIFaceGaze protocol"
+    },
+    "label_definition": {
+      "value": "gaze = normalize(gaze_target - face_center)",
+      "status": "VERIFIED / SOURCE-BACKED",
+      "source": "validated preprocessing (data/preprocessing/raw_pipeline.py)"
+    },
+    "model_contract": {
+      "input": "face-only (B, 3, 224, 224), ImageNet-normalized float32",
+      "output": "(B, 3) raw unnormalized gaze direction float32",
+      "status": "VERIFIED / SOURCE-BACKED",
+      "source": "models/registry.py inputs/outputs contract; angular-error evaluator normalizes predictions internally"
+    },
+    "authoritative_external_source": {
+      "value": "GazeHub @ Phi-ai Lab (https://phi-ai.buaa.edu.cn/Gazehub/) - Cheng et al., TPAMI 2024 (arXiv:2104.12668)",
+      "status": "VERIFIED / SOURCE-BACKED",
+      "caveat": "identifies protocol/preprocessing authority only; it does NOT publish the ResNet-50 MPIIFaceGaze optimization recipe"
+    }
+  }
+}

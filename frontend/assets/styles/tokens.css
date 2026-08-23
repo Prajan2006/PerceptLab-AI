@@ -1,0 +1,137 @@
+/* ============================================================
+   PerceptLab AI — Design tokens
+   Single source of truth for color, type, spacing, elevation.
+   Theme-ready: override on :root[data-theme="…"] later.
+   ============================================================ */
+
+:root {
+  /* --- Surfaces --------------------------------------------- */
+  --pl-bg: #f3f5f9;
+  --pl-surface: #ffffff;
+  --pl-surface-muted: #eef1f6;
+  --pl-border: #dce2ec;
+  --pl-border-soft: #e8edf4;
+
+  /* --- Sidebar (dark rail) ---------------------------------- */
+  --pl-sidebar-bg: #0f1826;
+  --pl-sidebar-text: #b9c4d4;
+  --pl-sidebar-muted: #76839a;
+  --pl-sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+  --pl-sidebar-active-bg: rgba(96, 145, 255, 0.16);
+  --pl-sidebar-active-fg: #ffffff;
+  --pl-sidebar-active-bar: #6ea0ff;
+
+  /* --- Text -------------------------------------------------- */
+  --pl-text: #17202e;
+  --pl-text-muted: #5a6a80;
+
+  /* --- Accents & semantics ---------------------------------- */
+  --pl-accent: #2457d6;
+  --pl-accent-hover: #1c46b3;
+  --pl-accent-soft: #e6edfd;
+
+  --pl-success: #177245;
+  --pl-success-soft: #dcf3e6;
+  --pl-warning: #9a5b04;
+  --pl-warning-soft: #fdf0d3;
+  --pl-danger: #bb2026;
+  --pl-danger-soft: #fbe3e4;
+  --pl-info: #0b6396;
+  --pl-info-soft: #dff0fa;
+
+  /* --- Camera preview surface ------------------------------- */
+  --pl-preview-bg: #0b1220;
+  --pl-preview-border: #1d2a40;
+  --pl-preview-grid: rgba(148, 180, 255, 0.055);
+  --pl-preview-accent: #38bdf8;
+
+  /* --- Typography -------------------------------------------- */
+  --pl-font-sans:
+    'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --pl-font-mono:
+    'Cascadia Code', 'SF Mono', ui-monospace, Consolas, 'Liberation Mono', monospace;
+
+  --pl-fs-xs: 0.75rem;
+  --pl-fs-sm: 0.8125rem;
+  --pl-fs-md: 0.9375rem;
+  --pl-fs-lg: 1.0625rem;
+  --pl-fs-xl: 1.375rem;
+  --pl-fs-2xl: 1.75rem;
+
+  /* --- Spacing scale ------------------------------------------ */
+  --pl-space-1: 4px;
+  --pl-space-2: 8px;
+  --pl-space-3: 12px;
+  --pl-space-4: 16px;
+  --pl-space-5: 24px;
+  --pl-space-6: 32px;
+  --pl-space-7: 48px;
+
+  /* --- Shape & elevation -------------------------------------- */
+  --pl-radius-sm: 6px;
+  --pl-radius-md: 10px;
+  --pl-radius-lg: 16px;
+
+  --pl-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --pl-shadow-md: 0 10px 28px -14px rgba(15, 23, 42, 0.28);
+
+  /* --- Motion --------------------------------------------------*/
+  --pl-transition-fast: 140ms ease;
+  --pl-transition-base: 220ms ease;
+
+  /* --- Layout metrics ----------------------------------------- */
+  --pl-sidebar-width: 264px;
+  --pl-topbar-height: 60px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pl-transition-fast: 0ms;
+    --pl-transition-base: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   Dark theme — overrides only; every component reads tokens.
+   ============================================================ */
+:root[data-theme='dark'] {
+  --pl-bg: #0f1421;
+  --pl-surface: #171e2e;
+  --pl-surface-muted: #202a40;
+  --pl-border: #2b3552;
+  --pl-border-soft: #232c44;
+
+  --pl-text: #e7ecf6;
+  --pl-text-muted: #9aa7c0;
+
+  --pl-accent: #5b8cff;
+  --pl-accent-hover: #7ba3ff;
+  --pl-accent-soft: rgba(91, 140, 255, 0.16);
+
+  --pl-success: #4ade80;
+  --pl-success-soft: rgba(74, 222, 128, 0.14);
+  --pl-warning: #fbbf24;
+  --pl-warning-soft: rgba(251, 191, 36, 0.14);
+  --pl-danger: #f87171;
+  --pl-danger-soft: rgba(248, 113, 113, 0.15);
+  --pl-info: #38bdf8;
+  --pl-info-soft: rgba(56, 189, 248, 0.14);
+
+  --pl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --pl-shadow-md: 0 10px 28px -14px rgba(0, 0, 0, 0.55);
+
+  --pl-sidebar-bg: #0b101c;
+}
+
+:root[data-theme='dark'] .topbar {
+  background: rgba(23, 30, 46, 0.92);
+}

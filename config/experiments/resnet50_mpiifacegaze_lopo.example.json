@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "name": "resnet50-mpii-lopo-baseline",
+  "seed": 0,
+  "dataset": {
+    "name": "mpii_facegaze"
+  },
+  "model": {
+    "name": "resnet50",
+    "params": {
+      "pretrained_backbone": true
+    }
+  },
+  "preprocessing": {
+    "recipe": "gazehub",
+    "params": {
+      "face_size": 224,
+      "expand_ratio": 2.0,
+      "imagenet_normalization": true
+    }
+  },
+  "protocol": {
+    "type": "lopo",
+    "seed": 0
+  },
+  "evaluation": {
+    "metric": "mean_angular_error_deg"
+  },
+  "output_dir": "data/experiments/resnet50-mpii-lopo-baseline"
+}

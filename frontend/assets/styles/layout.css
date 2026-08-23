@@ -1,0 +1,197 @@
+/* ============================================================
+   PerceptLab AI — Application shell layout
+   (sidebar rail · top bar · content region · responsive drawer)
+   ============================================================ */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar ------------------------------------------------ */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pl-space-5);
+  width: var(--pl-sidebar-width);
+  flex-shrink: 0;
+  padding: var(--pl-space-5) var(--pl-space-4);
+  background: var(--pl-sidebar-bg);
+  color: var(--pl-sidebar-text);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-3);
+  padding: var(--pl-space-1) var(--pl-space-2);
+}
+
+.sidebar__brand-name {
+  display: block;
+  font-size: var(--pl-fs-md);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.sidebar__brand-tagline {
+  display: block;
+  font-size: var(--pl-fs-xs);
+  color: var(--pl-sidebar-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sidebar__nav-label {
+  margin-bottom: var(--pl-space-2);
+  padding-left: var(--pl-space-3);
+  font-size: var(--pl-fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--pl-sidebar-muted);
+}
+
+.sidebar__nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-3);
+  padding: 9px var(--pl-space-3);
+  border-radius: var(--pl-radius-md);
+  font-size: var(--pl-fs-sm);
+  font-weight: 500;
+  color: var(--pl-sidebar-text);
+  transition:
+    background-color var(--pl-transition-fast),
+    color var(--pl-transition-fast);
+}
+
+.sidebar__link:hover {
+  background: var(--pl-sidebar-hover-bg);
+  color: #ffffff;
+}
+
+.sidebar__link--active {
+  background: var(--pl-sidebar-active-bg);
+  box-shadow: inset 3px 0 0 var(--pl-sidebar-active-bar);
+  color: var(--pl-sidebar-active-fg);
+  font-weight: 600;
+}
+
+.sidebar__footer {
+  margin-top: auto;
+  padding-top: var(--pl-space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--pl-fs-xs);
+  color: var(--pl-sidebar-muted);
+}
+
+/* --- Main column -------------------------------------------- */
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-4);
+  height: var(--pl-topbar-height);
+  padding: 0 clamp(var(--pl-space-4), 3vw, 32px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px) saturate(1.15);
+  border-bottom: 1px solid var(--pl-border);
+}
+
+.topbar__title {
+  font-size: var(--pl-fs-lg);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar__meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-4);
+}
+
+.topbar__clock {
+  font-size: var(--pl-fs-sm);
+  color: var(--pl-text-muted);
+}
+
+.topbar .menu-btn {
+  display: none;
+}
+
+.app-content {
+  flex: 1;
+  padding: clamp(var(--pl-space-4), 3vw, var(--pl-space-6));
+  max-width: var(--pl-content-max, 1480px);
+}
+
+.app-content:focus {
+  outline: none;
+}
+
+.backdrop {
+  display: none;
+}
+
+/* --- Responsive drawer (≤ 920px) ----------------------------- */
+
+@media (max-width: 920px) {
+  .topbar .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    transform: translateX(-105%);
+    transition: transform var(--pl-transition-base);
+    box-shadow: var(--pl-shadow-md);
+  }
+
+  .app-shell--sidebar-open .sidebar {
+    transform: none;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(9, 13, 20, 0.45);
+    border: 0;
+  }
+}

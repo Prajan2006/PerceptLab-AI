@@ -1,0 +1,10 @@
+{
+  "datasets": {
+    "mpii_facegaze": {
+      "description": "MPIIFaceGaze raw layout: per-subject pYY/dayXX frames + pYY.txt annotations (15 subjects p00-p14).",
+      "layout": "raw-txt",
+      "root_env": "PERCEPTLAB_MPIIFACE_GAZE_ROOT",
+      "default_root": "datasets/MPIIFaceGaze/Data/Data"
+    }
+  }
+}

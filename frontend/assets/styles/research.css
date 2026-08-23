@@ -1,0 +1,267 @@
+/* ============================================================
+   PerceptLab AI — research workstation styles
+   (tables · key/value grids · progress · fold lists · forms)
+   ============================================================ */
+
+/* --- Generic helpers ------------------------------------------- */
+
+.muted {
+  color: var(--pl-text-muted);
+}
+
+.small {
+  font-size: var(--pl-fs-xs);
+}
+
+/* --- Tables ------------------------------------------------------ */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--pl-border-soft);
+  border-radius: var(--pl-radius-md);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--pl-fs-sm);
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  padding: 8px 12px;
+  background: var(--pl-surface-muted);
+  color: var(--pl-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--pl-fs-xs);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 9px 12px;
+  border-top: 1px solid var(--pl-border-soft);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background: var(--pl-surface-muted);
+}
+
+.synthetic-flag {
+  margin-left: 4px;
+  color: var(--pl-info);
+  cursor: help;
+}
+
+/* --- Key/value grids --------------------------------------------- */
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--pl-space-3) var(--pl-space-5);
+  margin: 0;
+}
+
+.kv-grid > div {
+  min-width: 0;
+}
+
+.kv-grid dt {
+  font-size: var(--pl-fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pl-text-muted);
+}
+
+.kv-grid dd {
+  margin: 3px 0 0;
+  font-size: var(--pl-fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.kv-span {
+  grid-column: 1 / -1;
+}
+
+/* --- Progress ------------------------------------------------------ */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-3);
+}
+
+.progress__track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--pl-surface-muted);
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--pl-accent);
+  transition: width var(--pl-transition-base);
+}
+
+.progress__value {
+  flex-shrink: 0;
+  font-size: var(--pl-fs-xs);
+  color: var(--pl-text-muted);
+}
+
+/* --- Fold list ------------------------------------------------------ */
+
+.fold-list__rows {
+  margin-top: var(--pl-space-3);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.fold-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-3);
+  padding: 7px 10px;
+  border-top: 1px solid var(--pl-border-soft);
+  font-size: var(--pl-fs-sm);
+}
+
+.fold-list__row:first-child {
+  border-top: 0;
+}
+
+/* --- Metric summary -------------------------------------------------- */
+
+.metric-summary__headline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pl-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--pl-space-4);
+}
+
+.metric-summary__value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.metric-summary__label {
+  color: var(--pl-text-muted);
+  font-size: var(--pl-fs-sm);
+}
+
+.metric-summary .progress {
+  margin-bottom: var(--pl-space-4);
+}
+
+/* --- Experiment form ------------------------------------------------- */
+
+.experiment-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pl-space-4);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pl-space-3);
+}
+
+.form-row > * {
+  flex: 1;
+  min-width: 150px;
+}
+
+.fieldset {
+  border: 1px solid var(--pl-border-soft);
+  border-radius: var(--pl-radius-md);
+  padding: var(--pl-space-3) var(--pl-space-4) var(--pl-space-4);
+  margin: 0;
+}
+
+.fieldset legend {
+  padding: 0 6px;
+}
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--pl-border);
+  border-radius: var(--pl-radius-md);
+  background: var(--pl-surface);
+  font-size: var(--pl-fs-sm);
+}
+
+.input--invalid {
+  border-color: var(--pl-danger);
+}
+
+.check-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--pl-fs-sm);
+  padding-top: 22px;
+  white-space: nowrap;
+}
+
+.protocol-fixed {
+  margin-top: 9px;
+  font-size: var(--pl-fs-sm);
+  color: var(--pl-text);
+}
+
+.experiment-form__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--pl-space-3);
+  flex-wrap: wrap;
+}
+
+.card__actions-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pl-space-2);
+}
+
+/* --- Buttons (small variant) ------------------------------------------ */
+
+.btn--sm {
+  padding: 5px 12px;
+  font-size: var(--pl-fs-xs);
+}
+
+/* --- Mini history list --------------------------------------------------- */
+
+.mini-history li {
+  display: flex;
+  gap: var(--pl-space-3);
+  padding: 7px 2px;
+  border-top: 1px solid var(--pl-border-soft);
+  font-size: var(--pl-fs-sm);
+}
+
+.mini-history li:first-child {
+  border-top: 0;
+}
+
+/* --- Dataset / model cards ------------------------------------------------- */
+
+.dataset-card__head,
+.model-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pl-space-3);
+  margin-bottom: var(--pl-space-3);
+}

@@ -1,0 +1,70 @@
+/* ============================================================
+   PerceptLab AI — Page-level layouts
+   (dashboard · experiment workspace)
+   ============================================================ */
+
+/* --- Shared page header --------------------------------------- */
+
+.page-header {
+  margin-bottom: var(--pl-space-5);
+}
+
+.page-header h1 {
+  font-size: var(--pl-fs-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.page-header__sub {
+  margin-top: 4px;
+  font-size: var(--pl-fs-sm);
+  color: var(--pl-text-muted);
+}
+
+/* --- Dashboard -------------------------------------------------- */
+
+.grid-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--pl-space-4);
+  margin-bottom: var(--pl-space-5);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--pl-space-5);
+  align-items: start;
+}
+
+.col-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pl-space-5);
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Experiment workspace ---------------------------------------- */
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--pl-space-5);
+  align-items: start;
+}
+
+.workspace-grid .card--flush .card__body {
+  padding: var(--pl-space-4);
+}
+
+@media (max-width: 1100px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
