@@ -31,6 +31,12 @@ def _build_resnet50(**params):
     return ResNet50Gaze(**params)
 
 
+def _build_resnet50_face_eyes(**params):
+    from .resnet50_face_eyes import ResNet50FaceEyes
+
+    return ResNet50FaceEyes(**params)
+
+
 MODEL_REGISTRY: dict[str, ModelSpec] = {
     "resnet50": ModelSpec(
         name="resnet50",
@@ -41,6 +47,22 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         inputs={"face": (3, 224, 224)},
         params={"pretrained_backbone": True},
         builder=_build_resnet50,
+    ),
+    "resnet50_face_eyes": ModelSpec(
+        name="resnet50_face_eyes",
+        description=(
+            "Controlled input-representation arm: the frozen ResNet-50 face "
+            "backbone plus a compact shared encoder over the localized "
+            "36x60 eye-region patches. Only variable vs the reference run: "
+            "added eye-region information."
+        ),
+        inputs={
+            "face": (3, 224, 224),
+            "left_eye": (3, 36, 60),
+            "right_eye": (3, 36, 60),
+        },
+        params={"pretrained_backbone": True},
+        builder=_build_resnet50_face_eyes,
     ),
     "gazetr_hybrid": ModelSpec(
         name="gazetr_hybrid",

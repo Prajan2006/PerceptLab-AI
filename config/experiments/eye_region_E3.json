@@ -1,0 +1,59 @@
+{
+  "experiment": "eye_region_vs_full_face_E3",
+  "identity": {
+    "protocol_name": "Protocol B - Engineering Baseline (input-representation arm)",
+    "is_official_reproduction": false,
+    "research_question": "Under fixed preprocessing, architecture, training settings, and subject-independent LOPO evaluation, does adding localized eye-region information to a full-face RGB gaze-estimation baseline improve mean angular error on MPIIFaceGaze?",
+    "hypothesis": "Adding the localized 36x60 eye-region patches as an additional model input reduces mean LOPO angular error relative to the full-face-only reference run at identical training duration.",
+    "changed_variable": "input representation: face-only (resnet50) -> face + localized eye-region patches, left and right (resnet50_face_eyes)",
+    "fixed_variables": [
+      "dataset: MPIIFaceGaze raw-txt layout (37,667 validated samples, p00-p14)",
+      "splits: deterministic 15-fold subject-independent LOPO (data/splits.py)",
+      "labels: gaze = normalize(gaze_target - face_center), unchanged",
+      "loss: MSELoss(raw_prediction, unit_gaze_label)",
+      "optimizer: Adam",
+      "learning_rate: 1e-3",
+      "weight_decay: 0.0",
+      "scheduler: none",
+      "batch_size: 8",
+      "seed: 0",
+      "training duration: 3 epochs per fold (current working reference E3)",
+      "evaluation metric: mean_angular_error_deg via MeanAngularErrorEvaluator",
+      "device: cuda"
+    ],
+    "input_representation": {
+      "reference_arm": "face only, (B, 3, 224, 224) ImageNet-normalized float32 (model resnet50, frozen E3 results already exist)",
+      "treatment_arm": {
+        "face": "(B, 3, 224, 224) - identical stream to baseline backbone",
+        "left_eye": "(B, 3, 36, 60) - existing validated preprocessing crop",
+        "right_eye": "(B, 3, 36, 60) - existing validated preprocessing crop",
+        "fusion": "shared-weight compact CNN eye encoder (32-d per eye) concatenated with 2048-d face features -> linear head -> (B, 3)"
+      }
+    },
+    "output_directory": "data/experiments/engineering_baseline_v1_E3_eye_region",
+    "comparison_reference": "data/experiments/engineering_baseline_v1_E3",
+    "frozen_baseline_do_not_modify": [
+      "data/experiments/engineering_baseline_v1",
+      "data/experiments/engineering_baseline_v1_E3"
+    ],
+    "future_command_not_executed": "python scripts/train_lopo.py --seed 0 --device cuda --epochs 3 --model resnet50_face_eyes --output data/experiments/engineering_baseline_v1_E3_eye_region",
+    "estimated_runtime_hours": 11,
+    "estimated_runtime_note": "estimate only; based on measured E3 GPU runtime (~10.2 h) plus a small shared eye-encoder overhead"
+  },
+  "allowed_status_labels": [
+    "VERIFIED / SOURCE-BACKED",
+    "PROJECT-CHOSEN / NOT AUTHORITATIVE"
+  ],
+  "settings": {
+    "epochs": {"value": 3, "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE", "source": "E3 ratified as working reference duration"},
+    "batch_size": {"value": 8, "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "optimizer": {"type": "Adam", "lr": 0.001, "weight_decay": 0.0, "betas": [0.9, 0.999], "eps": 1e-08, "amsgrad": false, "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "scheduler": {"type": "none", "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "loss": {"value": "MSELoss(raw_prediction, unit_gaze_label)", "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "seed": {"mechanism": "apply_seed(0) before model construction and at trainer construction", "status": "VERIFIED / SOURCE-BACKED"},
+    "pretrained_initialization": {"registry_request": true, "note": "face backbone identical to baseline; eye encoder initialized from seed", "status": "SPLIT", "verified_part": "backbone request VERIFIED / SOURCE-BACKED (models/registry.py)", "project_chosen_part": "torchvision weight version PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "checkpoint": {"policy": "existing trainer save/load; final-only per fold", "best_selection": "none implemented", "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "augmentation": {"value": "none", "status": "PROJECT-CHOSEN / NOT AUTHORITATIVE"},
+    "shuffling": {"dataset_level": false, "loader_behavior": "shuffle=False unless caller overrides", "status": "VERIFIED / SOURCE-BACKED"}
+  }
+}

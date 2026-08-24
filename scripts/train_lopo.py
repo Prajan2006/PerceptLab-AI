@@ -108,6 +108,7 @@ def run_fold(
     training_config: TrainingConfig,
     batch_size: int,
     seed: int,
+    model_name: str = "resnet50",
     model_builder: Callable[[], object] | None = None,
     fold_datasets_factory=None,
     progress: Callable[[str], None] = print,
@@ -128,7 +129,7 @@ def run_fold(
         train_loader = make_gaze_dataloader(train_ds, batch_size=batch_size)
         val_loader = make_gaze_dataloader(val_ds, batch_size=batch_size)
 
-        builder = model_builder or (lambda: build_model("resnet50"))
+        builder = model_builder or (lambda: build_model(model_name))
         model = builder()
         trainer = BaselineTrainer(model, train_loader, val_loader, config=training_config)
 
@@ -138,6 +139,7 @@ def run_fold(
             {
                 "fold_index": fold.fold_index,
                 "test_subject": fold.test_subjects[0],
+                "model": model_name,
                 "train_samples": len(train_ds),
                 "test_samples": len(val_ds),
                 "epochs": training_config.epochs,
@@ -186,6 +188,7 @@ def run_lopo(
     baseline=None,
     progress: Callable[[str], None] = print,
     epochs: int | None = None,
+    model_name: str = "resnet50",
 ) -> dict:
     output_root = Path(output_root) if output_root is not None else _default_output_root()
     resolved = output_root.resolve()
@@ -226,6 +229,7 @@ def run_lopo(
                 training_config=training_config,
                 batch_size=baseline.batch_size,
                 seed=seed,
+                model_name=model_name,
                 model_builder=model_builder,
                 fold_datasets_factory=fold_datasets_factory,
                 progress=progress,
@@ -241,6 +245,7 @@ def run_lopo(
         "seed": seed,
         "epochs_per_fold": training_config.epochs,
         "batch_size": baseline.batch_size,
+        "model": model_name,
         "folds": [
             {
                 "fold_index": r.fold_index,
@@ -269,6 +274,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--folds", default="", help="comma-separated subset, e.g. p03,p11")
     parser.add_argument("--epochs", type=int, default=None,
                         help="training epochs per fold; default = frozen Protocol B value (1)")
+    parser.add_argument("--model", default="resnet50",
+                        help="registered model name; default = frozen baseline 'resnet50'")
     args = parser.parse_args(argv)
 
     folds_filter = [f.strip() for f in args.folds.split(",") if f.strip()] or None
@@ -279,6 +286,7 @@ def main(argv: list[str] | None = None) -> int:
         dataset_name=args.dataset,
         folds_filter=folds_filter,
         epochs=args.epochs,
+        model_name=args.model,
     )
     print(json.dumps(summary["counts"], indent=2))
     return 1 if summary["counts"]["failed"] else 0

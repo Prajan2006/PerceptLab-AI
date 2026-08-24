@@ -290,3 +290,21 @@ class TestEpochsOverride:
                 progress=lambda message: None,
                 epochs=0,
             )
+
+
+class TestModelNamePropagation:
+    def test_model_name_recorded_in_summary_and_metrics(self, tmp_path, synthetic_root):
+        summary = _run(
+            tmp_path / "out", synthetic_root, model_name="resnet50_face_eyes"
+        )
+
+        assert summary["model"] == "resnet50_face_eyes"
+        for subject in SUBJECTS:
+            metrics = json.loads(
+                (tmp_path / "out" / f"fold_{subject}" / "metrics.json").read_text()
+            )
+            assert metrics["model"] == "resnet50_face_eyes"
+
+    def test_default_model_is_frozen_baseline_resnet50(self, tmp_path, synthetic_root):
+        summary = _run(tmp_path / "out", synthetic_root)
+        assert summary["model"] == "resnet50"
