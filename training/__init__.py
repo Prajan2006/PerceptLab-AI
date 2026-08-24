@@ -6,7 +6,7 @@ from .baseline import (
     EngineeringBaseline,
     load_engineering_baseline,
 )
-from .trainer import BaselineTrainer, TrainingConfig, apply_seed
+from .trainer import BaselineTrainer, TrainingConfig, apply_seed, model_input_names
 
 __all__ = [
     "BASELINE_CONFIG_PATH",
@@ -16,4 +16,5 @@ __all__ = [
     "TrainingConfig",
     "apply_seed",
     "load_engineering_baseline",
+    "model_input_names",
 ]

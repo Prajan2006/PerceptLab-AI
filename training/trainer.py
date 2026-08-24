@@ -29,6 +29,7 @@ hyperparameters anywhere):
 
 from __future__ import annotations
 
+import inspect
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -39,6 +40,30 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from data.mpiifacegaze import GazeBatch
+
+# Canonical order of the input-image tensor fields a model may consume from a
+# ``GazeBatch``. Labels/metadata (gaze, head_pose, identity fields) are never
+# model inputs by project convention.
+_MODEL_INPUT_FIELDS = ("face", "left_eye", "right_eye")
+
+
+def model_input_names(model: nn.Module) -> tuple[str, ...]:
+    """Input-tensor fields (in canonical order) that ``model.forward`` consumes.
+
+    Single source of truth for routing ``GazeBatch`` tensors into any
+    registered model: face-only models get exactly ``("face",)``, the
+    face+eyes arm gets ``("face", "left_eye", "right_eye")``. Derived from the
+    model's own forward signature, so it stays correct for any builder,
+    including test stand-ins, without hard-coded special cases.
+    """
+    parameters = inspect.signature(model.forward).parameters
+    names = tuple(name for name in _MODEL_INPUT_FIELDS if name in parameters)
+    if not names:
+        raise ValueError(
+            f"{type(model).__name__}.forward consumes none of the supported "
+            f"model inputs {list(_MODEL_INPUT_FIELDS)}; cannot route a GazeBatch."
+        )
+    return names
 
 
 @dataclass(frozen=True)
@@ -61,18 +86,26 @@ def apply_seed(seed: int) -> None:
 
 @dataclass
 class BaselineTrainer:
-    """Epoch-level trainer over existing GazeBatch loaders."""
+    """Epoch-level trainer over existing GazeBatch loaders.
+
+    Model inputs are routed per ``model_input_names(model)``: face-only
+    models receive ``batch.face`` exactly as before, multi-input models (the
+    eye-region arm) additionally receive the existing preprocessed eye
+    patches. Loss/optimizer/labels are unaffected by routing.
+    """
 
     model: nn.Module
     train_loader: DataLoader
     val_loader: DataLoader | None = None
     config: TrainingConfig = field(default_factory=TrainingConfig)
+    input_names: tuple[str, ...] | None = None
 
     def __post_init__(self) -> None:
         if self.config.seed is not None:
             apply_seed(self.config.seed)
         self.device = torch.device(self.config.device)
         self.model.to(self.device)
+        self.input_names = self.input_names or model_input_names(self.model)
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=self.config.learning_rate,
@@ -84,9 +117,10 @@ class BaselineTrainer:
 
     # ---- batch handling ---------------------------------------------------
     def _loss_for_batch(self, batch: GazeBatch) -> torch.Tensor:
-        face = batch.face.to(self.device)
         gaze = batch.gaze.to(device=self.device, dtype=torch.float32)
-        prediction = self.model(face)
+        prediction = self.model(
+            **{name: getattr(batch, name).to(self.device) for name in self.input_names}
+        )
         return self.loss_fn(prediction, gaze)
 
     # ---- phases ------------------------------------------------------------

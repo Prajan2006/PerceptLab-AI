@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import inspect
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -12,16 +14,21 @@ from torch import nn
 
 from data.mpiifacegaze import (
     RawMPIIFaceGazeDataset,
+    build_lopo_fold_datasets,
     build_synthetic_raw_subject,
     make_gaze_dataloader,
 )
+from data.splits import lopo_folds
 from models.registry import (
     MODEL_REGISTRY,
     ModelBuildError,
     build_model,
     get_model_spec,
 )
+from models.resnet50 import ResNet50Gaze
 from models.resnet50_face_eyes import EXPECTED_EYE_SHAPE, EXPECTED_FACE_SHAPE, ResNet50FaceEyes
+from scripts.train_lopo import _evaluate
+from training import BaselineTrainer, TrainingConfig, model_input_names
 
 EXPERIMENT_CONFIG = Path("config/experiments/eye_region_E3.json")
 RESEARCH_QUESTION = (
@@ -215,3 +222,127 @@ class TestNoSplitLeakage:
         assert len(dataset) == 4
         assert test_ids.isdisjoint(train_ids)
         assert MODEL_REGISTRY["resnet50_face_eyes"].inputs["face"] == (3, 224, 224)
+
+
+@pytest.fixture(scope="module")
+def real_fold_loaders(tmp_path_factory):
+    """One synthetic LOPO fold through the real dataset/loader API."""
+    root = tmp_path_factory.mktemp("eye_integration") / "Data"
+    for subject in ("p00", "p01"):
+        build_synthetic_raw_subject(
+            root,
+            subject,
+            sessions=("day01",),
+            frames_per_session=2,
+            include_artifacts=False,
+        )
+    fold = lopo_folds(["p00", "p01"])[0]
+    train_ds, val_ds = build_lopo_fold_datasets(fold, root=root)
+    return (
+        make_gaze_dataloader(train_ds, batch_size=2),
+        make_gaze_dataloader(val_ds, batch_size=2),
+        val_ds,
+    )
+
+
+class TestRealModelIntegration:
+    """The REAL treatment model through the ACTUAL trainer and evaluator paths.
+
+    No stub builders here: these tests exist because the registry string
+    propagation tests alone cannot catch a trainer/evaluator call-site
+    mismatch for multi-input models.
+    """
+
+    def test_routing_matches_declared_inputs(self):
+        assert model_input_names(ResNet50Gaze(pretrained_backbone=False)) == ("face",)
+        assert model_input_names(ResNet50FaceEyes(pretrained_backbone=False)) == (
+            "face",
+            "left_eye",
+            "right_eye",
+        )
+
+    def test_trainer_fit_runs_real_multi_input_model(self, real_fold_loaders):
+        train_loader, val_loader, _ = real_fold_loaders
+        torch.manual_seed(0)
+        trainer = BaselineTrainer(
+            ResNet50FaceEyes(pretrained_backbone=False),
+            train_loader,
+            val_loader,
+            config=TrainingConfig(epochs=1, device="cpu", seed=0),
+        )
+        history = trainer.fit()
+
+        assert len(history) == 1
+        assert all(math.isfinite(record["train_loss"]) for record in history)
+        assert all(math.isfinite(record["val_loss"]) for record in history)
+
+    def test_evaluate_path_runs_real_multi_input_model(self, real_fold_loaders):
+        _, val_loader, val_ds = real_fold_loaders
+        torch.manual_seed(0)
+        model = ResNet50FaceEyes(pretrained_backbone=False)
+        model.eval()
+
+        with torch.no_grad():
+            batch = next(iter(val_loader))
+            prediction = model(batch.face, batch.left_eye, batch.right_eye)
+        assert prediction.shape == (batch.batch_size, 3)
+        assert bool(torch.isfinite(prediction).all())
+
+        metrics = _evaluate(model, val_loader, "cpu")
+        assert metrics["num_eval_samples"] == len(val_ds)
+        assert math.isfinite(metrics["mean_angular_error_deg"])
+        assert set(metrics["per_subject_deg"]) == {"p00"}
+
+    def test_checkpoint_roundtrip_preserves_multi_input_predictions(
+        self, real_fold_loaders, tmp_path
+    ):
+        train_loader, val_loader, _ = real_fold_loaders
+        torch.manual_seed(0)
+        trainer = BaselineTrainer(
+            ResNet50FaceEyes(pretrained_backbone=False),
+            train_loader,
+            config=TrainingConfig(epochs=1, device="cpu", seed=0),
+        )
+        trainer.fit()
+        path = trainer.save_checkpoint(tmp_path / "checkpoint.pt")
+
+        restored = BaselineTrainer(
+            ResNet50FaceEyes(pretrained_backbone=False),
+            train_loader,
+            input_names=model_input_names(trainer.model),
+        )
+        restored.load_checkpoint(path)
+
+        batch = next(iter(val_loader))
+        trainer.model.eval()
+        restored.model.eval()
+        with torch.no_grad():
+            inputs = {
+                name: getattr(batch, name) for name in model_input_names(trainer.model)
+            }
+            original = trainer.model(**inputs)
+            reloaded = restored.model(**inputs)
+        assert torch.equal(original, reloaded)
+
+    def test_face_only_baseline_routing_unchanged(self, real_fold_loaders):
+        """Baseline behavior guard: face-only model still receives face only."""
+        train_loader, val_loader, _ = real_fold_loaders
+        seen: list[tuple] = []
+
+        class RecordingBaseline(ResNet50Gaze):
+            def forward(self, face):  # noqa: D102 - signature must stay single-input
+                params = tuple(inspect.signature(type(self).forward).parameters)
+                seen.append(tuple(name for name in params if name != "self"))
+                return super().forward(face)
+
+        trainer = BaselineTrainer(
+            RecordingBaseline(pretrained_backbone=False),
+            train_loader,
+            val_loader,
+            config=TrainingConfig(epochs=1, device="cpu", seed=0),
+        )
+        history = trainer.fit()
+
+        assert trainer.input_names == ("face",)
+        assert seen and all(params == ("face",) for params in seen)
+        assert len(history) == 1

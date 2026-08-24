@@ -1,10 +1,11 @@
 """Thin LOPO orchestration for the Project Engineering Baseline (Protocol B).
 
-Composes ONLY existing components — no new hyperparameters, no trainer/model/
-data/split/evaluator changes:
+Composes ONLY existing components — no new hyperparameters, no data/split/
+evaluator changes. Model-input routing follows each model's declared forward
+signature via ``training.trainer.model_input_names``:
 
     load_engineering_baseline -> lopo_folds -> build_lopo_fold_datasets
-    -> make_gaze_dataloader(batch_size=8) -> build_model("resnet50")
+    -> make_gaze_dataloader(batch_size=8) -> build_model(model_name)
     -> BaselineTrainer.fit() -> MeanAngularErrorEvaluator -> save_checkpoint
 
 Behavior:
@@ -54,7 +55,12 @@ from data.mpiifacegaze import (  # noqa: E402
 )
 from data.splits import LOPOFold, lopo_folds  # noqa: E402
 from models.registry import build_model  # noqa: E402
-from training import BaselineTrainer, TrainingConfig, load_engineering_baseline  # noqa: E402
+from training import (  # noqa: E402
+    BaselineTrainer,
+    TrainingConfig,
+    load_engineering_baseline,
+    model_input_names,
+)
 
 SMOKE_RUN_DIR_NAME = "smoke_protocol_b_fold_p07"
 COMPLETION_FILES = ("checkpoint.pt", "history.json", "metrics.json")
@@ -83,10 +89,13 @@ def is_fold_complete(output_root: Path, fold: LOPOFold) -> bool:
 
 def _evaluate(model, val_loader, device) -> dict:
     evaluator = MeanAngularErrorEvaluator()
+    input_names = model_input_names(model)
     with torch.no_grad():
         model.eval()
         for batch in val_loader:
-            prediction = model(batch.face.to(device))
+            prediction = model(
+                **{name: getattr(batch, name).to(device) for name in input_names}
+            )
             evaluator.add(
                 prediction.detach().cpu().numpy(),
                 batch.gaze.detach().cpu().numpy(),
